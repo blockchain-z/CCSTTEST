@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>網路基礎知識測驗</title>
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --secondary-color: #2196F3;
+            --bg-color: #f4f7f6;
+            --text-color: #333;
+            --card-bg: #fff;
+            --correct-color: #d4edda;
+            --wrong-color: #f8d7da;
+            --explanation-bg: #fff3cd;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 800px;
+            padding: 30px;
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #2c3e50;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: opacity 0.3s;
+            margin: 5px;
+        }
+
+        .btn:hover { opacity: 0.8; }
+        .btn-primary { background-color: var(--primary-color); color: white; }
+        .btn-secondary { background-color: var(--secondary-color); color: white; }
+        
+        #mode-selection { text-align: center; margin-top: 30px; }
+        .hidden { display: none !important; }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #555;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .question-text {
+            font-size: 18px;
+            margin-bottom: 20px;
+            line-height: 1.5;
+            white-space: pre-line; /* 保留題目中的換行符號 */
+        }
+
+        .options-list {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .option-item {
+            background-color: #f9f9f9;
+            border: 2px solid #eee;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+        }
+
+        .option-item:hover {
+            border-color: #bdc3c7;
+            background-color: #f1f2f6;
+        }
+
+        .option-item.selected {
+            border-color: var(--secondary-color);
+            background-color: #e3f2fd;
+        }
+
+        .option-item.correct {
+            background-color: var(--correct-color);
+            border-color: #28a745;
+        }
+
+        .option-item.wrong {
+            background-color: var(--wrong-color);
+            border-color: #dc3545;
+        }
+
+        .feedback {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        /* 解析區塊的樣式 */
+        .explanation-box {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: var(--explanation-bg);
+            border-left: 5px solid #ffc107;
+            border-radius: 4px;
+            color: #856404;
+            line-height: 1.5;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        #results-area .summary-item {
+            border-bottom: 1px solid #ccc;
+            padding: 15px 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="mode-selection">
+        <h1>網路基礎知識測驗</h1>
+        <p>請選擇您想要的練習模式：</p>
+        <button class="btn btn-primary" onclick="startGame('immediate')">即時回饋模式 (作答後馬上看答案與解析)</button>
+        <button class="btn btn-secondary" onclick="startGame('deferred')">測驗模式 (全部作答完才看結果與解析)</button>
+    </div>
+
+    <div id="quiz-area" class="hidden">
+        <div class="question-header">
+            <span id="question-counter">問題 1 / 10</span>
+            <span id="mode-indicator">模式</span>
+        </div>
+        <div id="question-text" class="question-text"></div>
+        <div id="multi-select-hint" style="color: #e67e22; font-size: 14px; margin-bottom: 10px;" class="hidden">（此為多選題，請選擇正確數量的選項後點擊確認）</div>
+        <ul id="options-list" class="options-list"></ul>
+        
+        <div id="feedback-area" class="feedback hidden"></div>
+        <div id="explanation-area" class="explanation-box hidden"></div>
+
+        <div class="controls">
+            <button id="confirm-btn" class="btn btn-primary hidden" onclick="checkMultiAnswer()">確認答案</button>
+            <button id="next-btn" class="btn btn-secondary hidden" onclick="nextQuestion()">下一題</button>
+        </div>
+    </div>
+
+    <div id="results-area" class="hidden">
+        <h2>測驗結束！</h2>
+        <h3 id="final-score"></h3>
+        <div id="review-list"></div>
+        <button class="btn btn-primary" style="margin-top: 20px;" onclick="location.reload()">重新測驗</button>
+    </div>
+</div>
+
+<script>
+    // 這裡放入題庫 (為您轉換了前 10 題，並加入 explanation 欄位)
+    const questions = [
+        {
+            id: 1,
+            text: "請將清單所列的每個通訊協定，與對應的正確 TCP/IP 模型層進行配對。\n〔TCP 模型層〕：A.應用程式 B.傳輸 C.網際網路 D.網路存取\n〔通訊協定〕：1.TCP 2.IP 3.FTP 4.乙太網路",
+            type: "single",
+            options: [
+                "A-3, B-1, C-2, D-4", 
+                "A-1, B-2, C-3, D-4", 
+                "A-4, B-3, C-2, D-1", 
+                "A-2, B-1, C-4, D-3"
+            ],
+            correctAnswers: [0],
+            explanation: "解析：FTP 屬於應用程式層 (A-3)；TCP 屬於傳輸層 (B-1)；IP 屬於網際網路層 (C-2)；乙太網路屬於網路存取層 (D-4)。"
+        },
+        {
+            id: 2,
+            text: "在資料封裝程序中，哪個 OSI 層會加入包含 MAC 定址資訊的標頭以及用於錯誤檢查的尾端？",
+            type: "single",
+            options: ["資料連結", "傳輸", "工作階段", "網路"],
+            correctAnswers: [0],
+            explanation: "解析：資料連結層 (Data Link Layer) 負責將實體層的位元組裝成框架 (Frame)，並加入來源與目的地的 MAC 位址標頭，以及用於錯誤檢查的 FCS (框架檢查碼) 尾端。"
+        },
+        {
+            id: 3,
+            text: "請選出下列情境對應的正確網路類型組合：\nA. 兩部家庭辦公室電腦經由乙太網路纜線連線到交換器。\nB. 同一個城市的三棟政府大樓經由同軸電纜連線到有線電視公司。\nC. 手機連線到藍牙耳機。\nD. 金融機構透過電信服務提供者連接其分支機構。\n(1. WAN  2. PAN  3. MAN  4. LAN)",
+            type: "single",
+            options: [
+                "A-1, B-2, C-3, D-4",
+                "A-4, B-3, C-2, D-1",
+                "A-3, B-4, C-1, D-2",
+                "A-2, B-1, C-4, D-3"
+            ],
+            correctAnswers: [1],
+            explanation: "解析：A 是區域網路 (LAN-4)；B 跨越單一城市是都會網路 (MAN-3)；C 藍牙是個人區域網路 (PAN-2)；D 跨越廣大地理區域連接分支機構是廣域網路 (WAN-1)。"
+        },
+        {
+            id: 4,
+            text: "請選出下列情境對應的雲端運算服務模型組合：\nA. 三部虛擬機器由雲端的虛擬網路連接。\nB. 使用者按月付費以存取位於雲端的 Web 架構圖形設計應用程式。\nC. 公司使用雲端架構的資源和工具開發應用程式。\n(1. IaaS  2. PaaS  3. SaaS)",
+            type: "single",
+            options: [
+                "A-1, B-3, C-2",
+                "A-2, B-1, C-3",
+                "A-3, B-2, C-1",
+                "A-1, B-2, C-3"
+            ],
+            correctAnswers: [0],
+            explanation: "解析：A 提供基礎虛擬網路與機器是基礎設施即服務 (IaaS-1)；B 提供終端應用程式是軟體即服務 (SaaS-3)；C 提供開發工具與環境是平台即服務 (PaaS-2)。"
+        },
+        {
+            id: 5,
+            text: "請選出下列情境對應的通訊協定組合：\nA. 執行查詢以將 companypro.net 轉譯為 IP 位址。\nB. 將保留的 IP 位址 10.10.10.201 指派給您公司的網頁伺服器。\nC. 執行 ping 以確認伺服器是否回應網路連線。\n(1. DHCP  2. DNS  3. ICMP)",
+            type: "single",
+            options: [
+                "A-1, B-2, C-3",
+                "A-3, B-1, C-2",
+                "A-2, B-1, C-3",
+                "A-2, B-3, C-1"
+            ],
+            correctAnswers: [2],
+            explanation: "解析：A 解析網域名稱是 DNS(2)；B 指派 IP 位址是 DHCP(1)；C Ping 指令使用的是 ICMP(3) 協定。"
+        },
+        {
+            id: 6,
+            text: "請問哪種通訊協定可讓您安全地將檔案上傳到網際網路上的另一台電腦？",
+            type: "single",
+            options: ["SFTP", "ICMP", "NTP", "HTTP"],
+            correctAnswers: [0],
+            explanation: "解析：SFTP (Secure File Transfer Protocol) 透過 SSH 提供安全的檔案傳輸。HTTP 是網頁傳輸，NTP 是時間同步，ICMP 用於網路診斷。"
+        },
+        {
+            id: 7,
+            text: "請問 UDP 片段的標頭中包含哪些資訊？",
+            type: "single",
+            options: ["連接埠號碼", "IP 位址", "序號", "MAC 位址"],
+            correctAnswers: [0],
+            explanation: "解析：UDP 標頭非常精簡，僅包含來源連接埠號碼、目的地連接埠號碼、長度以及檢查碼。IP 位址在網路層，MAC 位址在資料連結層，序號是 TCP 特有的。"
+        },
+        {
+            id: 8,
+            text: "某個主機被指定了 IP 位址 172.16.100.25 和子網路遮罩 255.255.252.0。請問這個位址的 CIDR 標記法為何？",
+            type: "single",
+            options: ["172.16.100.25 /22", "172.16.100.25 /21", "172.16.100.25 /20", "172.16.100.25 /23"],
+            correctAnswers: [0],
+            explanation: "解析：子網路遮罩 255.255.252.0 轉換為二進位是 11111111.11111111.11111100.00000000。總共有 8+8+6 = 22 個 1，因此 CIDR 為 /22。"
+        },
+        {
+            id: 9,
+            text: "請問以下哪個位址包含在 192.168.200.0/24 網路中？",
+            type: "single",
+            options: ["192.168.200.13", "192.168.1.13", "192.168.201.13", "192.168.199.13"],
+            correctAnswers: [0],
+            explanation: "解析：/24 代表前三個八位元 (192.168.200) 是網路部，最後一個八位元是主機部。因此只有 192.168.200.x 屬於這個網段。"
+        },
+        {
+            id: 10,
+            text: "請問 IPv6 位址 2001:0db8:0000:0016:0000:001b:2000:0056 的最大壓縮有效格式為何？",
+            type: "single",
+            options: [
+                "2001: db8:16: :1b:2:56",
+                "2001: db8: :16 :: 1b:2:56",
+                "2001: db8: :16: :1b: 2000:56",
+                "2001: db8:0:16: :1b:2000:56"
+            ],
+            correctAnswers: [3],
+            explanation: "解析：IPv6 壓縮規則：1. 省略前導零 (0db8 -> db8, 0016 -> 16)。 2. 雙冒號 (::) 只能用一次來取代連續的零。此位址有兩段單一的 0000，只能選一處壓縮或單純省略前導零。正確壓縮為 2001:db8:0:16::1b:2000:56 (保留一個0，另一處用::)。"
+        },
+      {
+            id: 11,
+            text: "您需要使用 1000BASE-T 纜線將電腦的網路介面卡連接到交換器。 請問您應該使用哪個接頭？",
+            type: "single",
+            options: ["RJ-45", "RJ-11", "Coax", "OS2 LC"],
+            correctAnswers: [0],
+            explanation: "解析：1000BASE-T 是 Gigabit 乙太網路標準，使用雙絞線（如 Cat5e/Cat6），對應的標準接頭為 RJ-45。RJ-11 是電話線接頭，Coax 是同軸電纜，LC 則是光纖接頭。"
+        },
+        {
+            id: 12,
+            text: "請問以下哪個標準包含 Wi-Fi 網路的規格？",
+            type: "single",
+            options: ["IEEE 802.11", "EIA/TIA 568A", "LTE", "GSM"],
+            correctAnswers: [0],
+            explanation: "解析：IEEE 802.11 是無線區域網路 (WLAN) 的標準，也就是我們俗稱的 Wi-Fi。LTE 和 GSM 是行動通訊標準，EIA/TIA 568A 是網路線打線標準。"
+        },
+        {
+            id: 13,
+            text: "您想要儲存網路上每個使用者都可以存取的檔案。 請問您需要哪種端點裝置？",
+            type: "single",
+            options: ["交換器", "伺服器", "集線器", "存取點"],
+            correctAnswers: [1],
+            explanation: "解析：伺服器 (Server) 負責集中儲存與管理檔案，並提供給網路上的使用者存取（例如檔案伺服器）。交換器、集線器與存取點都屬於網路連線設備，而非儲存端點。"
+        },
+        {
+            id: 14,
+            text: "某位使用者起始了障礙申告票證，指出外部網頁未載入。您判斷內部與外部的其他資源仍可存取。 請問您可以使用哪個命令來協助在外部網頁的網路路徑中找出問題所在？",
+            type: "single",
+            options: ["tracert", "nslookup", "ping -t", "ipconfig/all"],
+            correctAnswers: [0],
+            explanation: "解析：tracert (Trace Route) 命令可以追蹤封包從來源到目的地所經過的每一個路由器節點（躍點），幫助找出在哪個特定的網路路徑區段發生了中斷或延遲。"
+        },
+        {
+            id: 15,
+            text: "某位支援技術人員檢查了 Cisco 交換器的前面板，發現前四個連接埠已連接 4 條乙太網路纜線。連接埠 1、2 和 3 都亮起綠色 LED。連接埠 4 則閃爍綠燈。 請問連接埠 4 的狀態為何？",
+            type: "single",
+            options: [
+                "連結已上線且不穩定。",
+                "連結已上線且沒有活動。",
+                "連結已上線且使用中。",
+                "連結已上線但纜線故障。"
+            ],
+            correctAnswers: [2],
+            explanation: "解析：在多數 Cisco 交換器上，穩定的綠燈代表已建立連線 (Link UP) 但目前無資料傳輸；而「閃爍綠燈」則代表連線不僅已建立，且目前正有網路活動（資料正在傳輸中）。"
+        },
+        {
+            id: 16,
+            text: "某位工程師為資料中心團隊設定了一個名為 VLAN2 的新 VLAN。當該團隊嘗試從 VLAN2 中的電腦 Ping VLAN2 外部的位址時，他們無法存取這些位址。 請問工程師應該設定以下何者？",
+            type: "single",
+            options: ["預設閘道", "靜態路由", "預設路由", "額外的 VLAN"],
+            correctAnswers: [0],
+            explanation: "解析：不同 VLAN 屬於不同的廣播網域 (子網路)。要讓 VLAN 內的設備與外部網路（其他 VLAN 或網際網路）通訊，必須為電腦設定正確的「預設閘道 (Default Gateway)」。"
+        },
+        {
+            id: 17,
+            text: "請問將 IP 位址指派給第 2 層交換器上之管理 VLAN 介面的目的為何？",
+            type: "single",
+            options: [
+                "為了能夠透過 Telnet 或 SSH 存取交換器上的 CLI",
+                "為了讓交換器能夠做為所連接裝置的預設閘道",
+                "為了讓交換器能夠向網路中的其他交換器提供 DHCP 服務",
+                "為了讓交換器能夠解析所連接裝置的 URL"
+            ],
+            correctAnswers: [0],
+            explanation: "解析：第 2 層交換器主要處理 MAC 位址，不需要 IP 也能轉送框架。但為了能從遠端對交換器進行管理（如使用 Telnet、SSH 連接其文字介面 CLI），必須在其管理 VLAN 上設定一組 IP 位址。"
+        },
+        {
+            id: 18,
+            text: "某位技術支援中心的技術人員收到下列四個障礙申告票證。請問哪個票證應該獲得最高優先順序並優先處理？",
+            type: "single",
+            options: [
+                "某位使用者要求將印表機搬遷到同一個辦公室中的其他網路插孔。",
+                "會議室正在舉行線上網路研討會。視訊會議設備的網際網路存取中斷了。",
+                "某位使用者回報某個雲端架構應用程式的回應時間比平常慢。",
+                "兩位使用者回報自助餐廳的無線網路存取已經關閉一小時了。"
+            ],
+            correctAnswers: [1],
+            explanation: "解析：IT 支援優先順序通常以「影響業務營運的嚴重程度」來判定。正在進行中的線上會議中斷會直接造成當下的業務停擺與損失，因此屬於最緊急 (最高優先順序) 的事件。"
+        },
+        {
+            id: 19,
+            text: "某部 Cisco 交換器無法從網路存取。您需要檢視其運作設定。 請問您可以使用哪種頻外方法存取該交換器？",
+            type: "single",
+            options: ["主控台", "SSH", "Telnet", "SNMP"],
+            correctAnswers: [0],
+            explanation: "解析：「頻外 (Out-of-band) 管理」指的是不依賴一般的網路連線通道來進行管理。當設備無法連上網路時，透過實體的主控台纜線 (Console Cable) 直接連接設備，是唯一的頻外存取方法。"
+        },
+        {
+            id: 20,
+            text: "應用程式下載資料時發生問題，URL為: https://www.companypro.net:7100/api。您需要使用 Wireshark 擷取封包。\n請問您會使用哪些 Wireshark 篩選選項來完成命令？\n____（A）____ . ____（B）____ == ____（C）____\n（A）1. tcp 2. udp\n（B）1. port 2. user_agent\n（C）1. 7100 2. companypro.net 3. http",
+            type: "single",
+            options: [
+                "1. (A-1, B-1, C-1) -> tcp.port == 7100",
+                "2. (A-1, B-2, C-3) -> tcp.user_agent == http",
+                "3. (A-2, B-2, C-1) -> udp.user_agent == 7100",
+                "4. (A-3, B-2, C-2) -> 格式錯誤"
+            ],
+            correctAnswers: [0],
+            explanation: "解析：HTTPS 使用的是 TCP 協定。要篩選特定通訊埠 (Port 7100) 的流量，Wireshark 的正確語法是 `tcp.port == 7100`。對應題目的選項即為 A(1) - B(1) - C(1)。"
+        },
+        {
+            id: 21,
+            text: "請問哪種裝置會根據 IP 位址、連接埠號碼或應用程式允許或拒絕流量來保護網路？",
+            type: "single",
+            options: ["防火牆", "VPN 閘道", "存取點", "入侵偵測系統"],
+            correctAnswers: [0],
+            explanation: "解析：防火牆 (Firewall) 是一種存取控制設備，其主要功能就是根據設定的規則（如 IP、連接埠、應用程式等），決定是否允許或拒絕網路流量通過。"
+        },
+        {
+            id: 22,
+            text: "請問 AAA 服務安全性模型的哪個元件會提供身分識別驗證？",
+            type: "single",
+            options: ["驗證 (Authentication)", "稽核 (Auditing)", "帳戶處理 (Accounting)", "授權 (Authorization)"],
+            correctAnswers: [0],
+            explanation: "解析：AAA 分別代表：Authentication（驗證：確認你是誰）、Authorization（授權：你能做什麼）、Accounting（帳戶處理/紀錄：你做了什麼）。身分識別屬於「驗證」。"
+        },
+        {
+            id: 23,
+            text: "請將 MFA (多因素驗證) 要素選取對應的正確範例：\nA. 輸入登入後傳送到裝置的一次性安全碼\nB. 將您的手機對準臉部以進行辨識\nC. 指定您的使用者名和密碼以登入服務\n(1. 推斷 / 生物特徵  2. 知識  3. 所有物)",
+            type: "single",
+            options: [
+                "A-3, B-1, C-2",
+                "A-1, B-2, C-3",
+                "A-2, B-3, C-1",
+                "A-3, B-2, C-1"
+            ],
+            correctAnswers: [0],
+            explanation: "解析：A 傳送到手機的安全碼證明你「擁有」該設備 (所有物-3)。B 臉部辨識是你與生俱來的生理特徵 (推斷/Inherence-1)。C 密碼是你大腦記住的資訊 (知識-2)。"
+        },
+        {
+            id: 24,
+            text: "請問哪個無線安全性選項會使用預先共用金鑰驗證用戶端？",
+            type: "single",
+            options: ["WPA2-Personal", "WPA2-Enterprise", "802.1x", "802.1q"],
+            correctAnswers: [0],
+            explanation: "解析：WPA2-Personal（也稱為 WPA2-PSK）使用預先共用金鑰 (Pre-Shared Key) 來驗證；而 WPA2-Enterprise 則是與 802.1x 和 RADIUS 伺服器整合，使用個人帳號密碼進行企業級驗證。"
+        },
+        {
+            id: 25,
+            text: "請將安全性選項選取其對應的特性：\nA. 使用 RADIUS 伺服器進行驗證\nB. 至少使用 40 位元進行加密\nC. 使用 AES 和預先共用金鑰進行驗證\n(1. WEP  2. WPA2-Personal  3. WPA2-Enterprise)",
+            type: "single",
+            options: [
+                "A-1, B-2, C-3",
+                "A-3, B-1, C-2",
+                "A-2, B-3, C-1",
+                "A-3, B-2, C-1"
+            ],
+            correctAnswers: [1],
+            explanation: "解析：A 企業級驗證仰賴 RADIUS 伺服器 (WPA2-Enterprise-3)；B 舊式薄弱的加密標準使用 40 位元或 104 位元金鑰 (WEP-1)；C 使用 AES 加密與共用密碼的是家用標準 (WPA2-Personal-2)。"
+        },
+        {
+            id: 26,
+            text: "請問資料流在哪個 OSI 層被分解為包含來源和目的地連接埠號碼的片段？",
+            type: "single",
+            options: ["傳輸", "工作階段", "網路", "資料連結"],
+            correctAnswers: [0],
+            explanation: "解析：傳輸層 (Transport Layer) 負責將應用程式的資料分解為區段 (Segments) 或資料報 (Datagrams)，並在標頭中加入「來源與目的地連接埠號碼」以區分不同的應用程式服務。"
+        },
+        {
+            id: 27,
+            text: "請將每個通訊協定或裝置類型，選取對應的正確 OSI 層。\nA.纜線、集線器、NIC  B.第 2 層交換器  C.路由器  D.SMTP、HTTP、FTP  E.TCP、UDP\n(1.應用程式  2.傳輸  3.網路  4.資料連結  5.實體)",
+            type: "single",
+            options: [
+                "A-5, B-4, C-3, D-1, E-2",
+                "A-1, B-2, C-3, D-4, E-5",
+                "A-4, B-5, C-1, D-3, E-2",
+                "A-5, B-3, C-4, D-2, E-1"
+            ],
+            correctAnswers: [0],
+            explanation: "解析：纜線等實體設備(A-5)；看 MAC 的 Switch 是資料連結層(B-4)；看 IP 的 Router 是網路層(C-3)；HTTP/FTP 是應用程式層(D-1)；TCP/UDP 是傳輸層(E-2)。"
+        },
+        {
+            id: 28,
+            text: "請將每個網路類別選取對應的正確定義：\nA.跨越小區域，例如房間、辦公大樓\nB.跨越較大的地理距離，並透過租用線路連接\nC.在約 12 公尺的範圍內連接電腦、電話和印表機等裝置\n(1. LAN  2. PAN  3. WAN)",
+            type: "single",
+            options: [
+                "A-1, B-3, C-2",
+                "A-3, B-1, C-2",
+                "A-2, B-3, C-1",
+                "A-1, B-2, C-3"
+            ],
+            correctAnswers: [0],
+            explanation: "解析：小區域辦公室是區域網路 (LAN-1)；跨越廣大地理區域是廣域網路 (WAN-3)；極短距離 (如藍牙耳機連線) 是個人區域網路 (PAN-2)。"
+        },
+        {
+            id: 29,
+            text: "請將每種雲端服務模型選取對應的正確描述：\nA.提供開發、執行及管理應用程式所需的硬體和軟體。\nB.針對虛擬機器和虛擬儲存體上提供的資源提供隨用隨付存取。\nC.針對透過網際網路遠端提供的應用程式提供隨選存取。\n(1. IaaS  2. PaaS  3. SaaS)",
+            type: "single",
+            options: [
+                "A-1, B-2, C-3",
+                "A-2, B-1, C-3",
+                "A-3, B-2, C-1",
+                "A-2, B-3, C-1"
+            ],
+            correctAnswers: [1],
+            explanation: "解析：A 專注於開發與執行環境的是 PaaS(2)；B 提供基礎虛擬資源 (VM、儲存空間) 的是 IaaS(1)；C 直接提供終端應用軟體服務的是 SaaS(3)。"
+        },
+        {
+            id: 30,
+            text: "請問 IPv6 主機會使用哪種通訊協定來解析與目的地 IPv6 位址相關聯的 MAC 位址？",
+            type: "single",
+            options: [
+                "芳鄰探索通訊協定（NDP）",
+                "Cisco 探索通訊協定（CDP）",
+                "位址解析通訊協定（ARP）",
+                "動態主機設定通訊協定（DHCP）"
+            ],
+            correctAnswers: [0],
+            explanation: "解析：在 IPv4 中，是利用 ARP 來將 IP 解析為 MAC 位址。但在 IPv6 中，ARP 已被淘汰，取而代之的是基於 ICMPv6 的「芳鄰探索通訊協定 (Neighbor Discovery Protocol, NDP)」來執行解析任務。"
+        },
+      {
+            id: 31,
+            text: "請將通訊協定選取對應的特性：\nA. 可使用 SSH 金鑰防止冒名頂替者連線到伺服器。\nB. 使用連接埠 22 確保檔案傳輸的資料完整性和資料安全性。\nC. 可使用 UDP 備份網路和路由器設定檔。\nD. 使用連接埠 69 在 LAN 内傳輸小型檔案。\n(1. TFTP  2. SFTP)",
+            type: "single",
+            options: [
+                "A-1, B-1, C-2, D-2",
+                "A-2, B-2, C-1, D-1",
+                "A-2, B-1, C-2, D-1",
+                "A-1, B-2, C-1, D-2"
+            ],
+            correctAnswers: [1],
+            explanation: "解析：A 與 B 描述的都是具備加密安全性的 SFTP (Secure FTP)，走的是 Port 22 (SSH)；C 與 D 描述的是輕量、無連線狀態的 TFTP (Trivial FTP)，走的是 UDP Port 69。"
+        },
+        {
+            id: 32,
+            text: "請問啟用 IPv6 的主機會使用哪種通訊協定來執行自動無狀態位址設定（SLAAC）？",
+            type: "single",
+            options: ["ICMPv6", "DNS", "DHCPv6", "TFTP"],
+            correctAnswers: [0],
+            explanation: "解析：在 IPv6 網路中，主機會透過 ICMPv6 傳送路由器請求 (RS) 並接收路由器通告 (RA)，藉此自動產生自己的 IPv6 位址（也就是無狀態位址自動設定 SLAAC）。"
+        },
+        {
+            id: 33,
+            text: "請問子網路遮罩 255.255.0.0 的 CIDR 首碼標記法為何？",
+            type: "single",
+            options: ["/8", "/16", "/24", "/32"],
+            correctAnswers: [1],
+            explanation: "解析：255 轉換為二進位是 8 個 1 (11111111)。255.255.0.0 包含了兩個 255，也就是 8 + 8 = 16 個 1，因此 CIDR 標記法為 /16。"
+        },
+        {
+            id: 34,
+            text: "請問使用 CIDR 標記法時，如何編寫以下 IP 位址與遮罩？\n位址:192.168.0.16  子網路遮罩:255.255.255.240",
+            type: "single",
+            options: ["192.168.0.16 /15", "192.168.0.16 /24", "192.168.0.16 /28", "192.168.0.16 /30"],
+            correctAnswers: [2],
+            explanation: "解析：前三個 255 代表 24 個 1。最後一個八位元 240 轉換為二進位是 11110000 (4 個 1)。總計 24 + 4 = 28，所以 CIDR 是 /28。"
+        },
+        {
+            id: 35,
+            text: "請問以下哪個位址是連結-本機 (Link-Local) IPv6 位址？",
+            type: "single",
+            options: [
+                "fe80 :: 261:2eff:fe10:7561",
+                "2001: db8: 85a3: 8d3:1319: 8a2e: 370:7348",
+                "fdf8:f535:82e4 :: 53",
+                "ff01:0:0:0:0:0:0:2"
+            ],
+            correctAnswers: [0],
+            explanation: "解析：IPv6 的 Link-Local（連結-本機位址，僅限同一個網段內通訊使用）固定以「fe80::/10」開頭。2001 開頭是全域單點播送，ff 開頭是多點播送。"
+        },
+        {
+            id: 36,
+            text: "請問您應該使用哪種類型的接頭來端接無遮蔽雙絞線 (UTP) 電纜？",
+            type: "single",
+            options: ["RJ-45", "ST", "SC", "BNC"],
+            correctAnswers: [0],
+            explanation: "解析：UTP 網路線最標準的接頭就是 RJ-45 (8P8C)。ST 與 SC 是光纖接頭，BNC 是同軸電纜接頭。"
+        },
+        {
+            id: 37,
+            text: "請問哪種網路技術不受電磁干擾 (EMI) 和無線電波干擾 (RFI) 的影響？",
+            type: "single",
+            options: ["光纖", "銅線", "無線", "雙絞線"],
+            correctAnswers: [0],
+            explanation: "解析：光纖纜線傳輸的是光訊號（光子），而非電訊號，因此完全免疫於外部的電磁與無線電波干擾。"
+        },
+        {
+            id: 38,
+            text: "請問以下哪種裝置是物聯網（IoT）裝置？",
+            type: "single",
+            options: [
+                "可存取網際網路的控溫器",
+                "視訊串流伺服器",
+                "虛擬私人網路集中器",
+                "雲端架構的檔案儲存體陣列"
+            ],
+            correctAnswers: [0],
+            explanation: "解析：物聯網 (IoT) 裝置指的是將感測器、軟體與技術內建於日常物品中並連上網路的設備。「可連網的智慧控溫器」就是典型的 IoT 設備。"
+        },
+        {
+            id: 39,
+            text: "某位使用者的電腦已插線至交換器連接埠 Gi0/15。其連接埠的狀態指示燈交替閃爍綠色和琥珀色。 請問此燈號模式指出連接埠 Gi0/15 的狀態為何？",
+            type: "single",
+            options: [
+                "連接埠的錯誤率很高。",
+                "連接埠以系統管理方式關閉。",
+                "連接埠未連接到已開機的裝置。",
+                "連接埠遭到防火牆規則封鎖。"
+            ],
+            correctAnswers: [0],
+            explanation: "解析：在 Cisco 交換器中，連接埠指示燈交替閃爍綠燈與琥珀色燈，通常代表該連結遭遇嚴重的錯誤 (Link Fault)，例如雙工模式不符 (Duplex Mismatch) 導致的高錯誤率。"
+        },
+        {
+            id: 40,
+            text: "請問交換器的 MAC 位址表包含哪些資訊？",
+            type: "single",
+            options: [
+                "在使用中連接埠上進行通訊之裝置的 MAC 位址以及系統管理員所設定的靜態 MAC 位址",
+                "在交換器的使用中連接埠上進行通訊之裝置的動態獲知第 2 層和第 3 層位址",
+                "透過 ARP 要求獲知或系統管理員手動設定的 MAC 位址至 IP 位址對應",
+                "交換器上的所有使用中連接埠以及在每個連接埠上動態獲知的主機第 3 層位址"
+            ],
+            correctAnswers: [0],
+            explanation: "解析：交換器的 MAC 位址表 (MAC Address Table) 只運作在第 2 層，紀錄的是「動態學習到的設備 MAC 位址」與「連接埠」的對應，以及管理員手動綁定的靜態 MAC 位址。不包含第 3 層的 IP 位址。"
+        },
+        {
+            id: 41,
+            text: "您公司的使用者無法連線到網際網路上的網站。但是，他們可以連線到公司 LAN 上的網路資源。您想要使用分治法對問題進行疑難排解。您首先應該怎麼做？",
+            type: "single",
+            options: [
+                "從使用者的電腦 Ping 預設閘道。",
+                "檢查電腦的纜線連接。",
+                "從使用者的電腦執行 Telnet 命令。",
+                "檢查電腦的網路介面卡。"
+            ],
+            correctAnswers: [0],
+            explanation: "解析：既然能連上區域網路 (LAN) 的資源，代表纜線與網卡皆正常。要連外網必須經過路由器，因此使用分治法 (Divide and Conquer) 的第一步，是先 Ping 預設閘道，確認能否到達內部網路的邊界。"
+        },
+        {
+            id: 42,
+            text: "網路系統管理員可以成功 Ping URL www.cisco.com，但無法 Ping 位於另一個城市之遠端分支機構的公司伺服器。 您需要確定在遠端分支機構的路徑中丟棄封包的特定路由器。請問您應該使用哪個公用程式？",
+            type: "single",
+            options: ["telnet", "netstat", "ipconfig", "traceroute"],
+            correctAnswers: [3],
+            explanation: "解析：Traceroute (或 tracert) 會追蹤並顯示封包從來源到達目的地所經過的每一個路由器節點。它可以幫你精準定位封包是在哪個躍點 (Hop) 被丟棄的。"
+        },
+        {
+            id: 43,
+            text: "您的公司在整棟大樓中設有 20 部 Cisco 交換器。您需要從命令列檢視每部交換器的設定。請問您應該使用哪個通訊協定？",
+            type: "single",
+            options: ["SNMP", "RDP", "SMTP", "FTP"],
+            correctAnswers: [0],
+            explanation: "解析：雖然實務上最常使用 SSH 進入命令列，但在這題的選項中，SNMP (簡易網路管理通訊協定) 是用來集中收集與管理網路設備狀態設定的協定。RDP 是遠端桌面，SMTP 是電子郵件，FTP 是檔案傳輸。"
+        },
+        {
+            id: 44,
+            text: "請問防火牆如何判斷該封鎖哪些流量？",
+            type: "single",
+            options: [
+                "防火牆會根據來源和目的地 IP 位址比對流量。",
+                "防火牆會執行一對一的網路位址轉譯。",
+                "防火牆會執行一對多的網路位址轉譯。",
+                "防火牆會根據 ARP 表中的 IP 位址比對流量。"
+            ],
+            correctAnswers: [0],
+            explanation: "解析：防火牆最基礎的功能是套用存取控制清單 (ACL)，根據封包標頭中的資訊（如來源 IP、目的地 IP、通訊埠號碼）來比對規則，決定允許或丟棄該流量。"
+        },
+        {
+            id: 45,
+            text: "請問以下哪一項敘述最能描述關於網路安全性方面的機密性 (Confidentiality)？",
+            type: "single",
+            options: [
+                "確保資料在系統之間傳輸期間不被變更。",
+                "提供備援系統以確保資料可供存取。",
+                "確保資料受信任且未遭篡改或變更。",
+                "使用保護措施來防止未經授權的存取，確保資料保密。"
+            ],
+            correctAnswers: [3],
+            explanation: "解析：資安金三角 (CIA) 中，機密性 (Confidentiality) 旨在防止未經授權的人看到資料（如加密）。確保不被竄改的是「完整性(Integrity)」，提供備援確保能存取的是「可用性(Availability)」。"
+        },
+        {
+            id: 46,
+            text: "請將 CIA 安全性原則選取其對應的範例：\nA. 您加密敏感性電子郵件訊息。\nB. 您產生一組數位簽章並將其附加到訊息。\nC. 您在公司設定三部備援網頁伺服器。\n(1.可用性  2.機密性  3.完整性)",
+            type: "single",
+            options: [
+                "A-2, B-3, C-1",
+                "A-1, B-2, C-3",
+                "A-3, B-1, C-2",
+                "A-2, B-1, C-3"
+            ],
+            correctAnswers: [0],
+            explanation: "解析：A 加密是為了「機密性」(2)；B 數位簽章能證明資料未被竄改，確保「完整性」(3)；C 備援伺服器確保服務不中斷，提供「可用性」(1)。"
+        },
+        {
+            id: 47,
+            text: "請問在設定無線網路時，啟用 WPA3 可提供哪些安全性優勢？",
+            type: "single",
+            options: [
+                "保護用戶端與存取點之間的驗證",
+                "使探索無線網路變得更加困難",
+                "限制僅指定裝置可存取網路",
+                "透過加密通道傳送流量"
+            ],
+            correctAnswers: [0],
+            explanation: "解析：WPA3 引入了「對等同步驗證 (SAE)」取代 WPA2 的四方交握，這極大地提升了用戶端與 AP 之間身分驗證的保護能力，能有效防禦離線字典攻擊。"
+        },
+        {
+            id: 48,
+            text: "您需要為家庭路由器進行無線設定。請配對對應的動作：\nA. 想要裝置在連線到網路時使用預先共用金鑰。\nB. 想要防止裝置探索 WiFi 網路的名稱。\nC. 想要防止使用者使用實體按鈕方法存取網路。\n(1.停用 WPS  2.停用 SSID 廣播  3.將安全性模式設定為 WPA2-PSK)",
+            type: "single",
+            options: [
+                "A-3, B-2, C-1",
+                "A-1, B-2, C-3",
+                "A-2, B-3, C-1",
+                "A-3, B-1, C-2"
+            ],
+            correctAnswers: [0],
+            explanation: "解析：A 預先共用金鑰即為 WPA2-PSK(3)；B 防止被探索即隱藏網路名稱，即停用 SSID 廣播(2)；C 實體按鈕連線技術稱為 WPS，因此需停用 WPS(1)。"
+        },
+        {
+            id: 49,
+            text: "請問哪個命令將顯示 Cisco 路由器上設定的所有目前作業 (正在執行中) 設定？",
+            type: "single",
+            options: ["show running-config", "show version", "show startup-config", "show protocols"],
+            correctAnswers: [0],
+            explanation: "解析：`show running-config` 會顯示目前設備 RAM 中正在運作生效的設定檔。而 `show startup-config` 則是顯示存在 NVRAM 中、開機時會載入的初始設定。"
+        },
+        {
+            id: 50,
+            text: "您想要列出與主機名稱 www.companypro.net 相關聯的 IPv4 位址。\n請問您應該如何組合下列命令？\n____（A）____ ____（B）____\n（A）1. ipconfig  2. nslookup  3. tracert  4. netstat\n（B）1. companypro  2. domain name  3. www.companypro.net",
+            type: "single",
+            options: [
+                "A-2, B-3 (nslookup www.companypro.net)",
+                "A-1, B-2 (ipconfig domain name)",
+                "A-3, B-1 (tracert companypro)",
+                "A-4, B-3 (netstat www.companypro.net)"
+            ],
+            correctAnswers: [0],
+            explanation: "解析：`nslookup` 是一個網路管理命令列工具，可以用來向網域名稱系統 (DNS) 查詢以取得網域名稱 (如 www.companypro.net) 與 IP 位址的對應關係。"
+        }
+    ];
+  
+
+    let currentMode = '';
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let userAnswers = [];
+    let hasAnsweredCurrent = false;
+
+    const modeSelection = document.getElementById('mode-selection');
+    const quizArea = document.getElementById('quiz-area');
+    const resultsArea = document.getElementById('results-area');
+    const questionCounter = document.getElementById('question-counter');
+    const modeIndicator = document.getElementById('mode-indicator');
+    const questionText = document.getElementById('question-text');
+    const optionsList = document.getElementById('options-list');
+    const nextBtn = document.getElementById('next-btn');
+    const confirmBtn = document.getElementById('confirm-btn');
+    const feedbackArea = document.getElementById('feedback-area');
+    const explanationArea = document.getElementById('explanation-area');
+    const multiSelectHint = document.getElementById('multi-select-hint');
+
+    function startGame(mode) {
+        currentMode = mode;
+        currentQuestionIndex = 0;
+        score = 0;
+        userAnswers = [];
+        modeSelection.classList.add('hidden');
+        quizArea.classList.remove('hidden');
+        modeIndicator.innerText = mode === 'immediate' ? '即時回饋模式' : '測驗模式';
+        loadQuestion();
+    }
+
+    function loadQuestion() {
+        hasAnsweredCurrent = false;
+        feedbackArea.classList.add('hidden');
+        explanationArea.classList.add('hidden');
+        nextBtn.classList.add('hidden');
+        confirmBtn.classList.add('hidden');
+        optionsList.innerHTML = '';
+        
+        const q = questions[currentQuestionIndex];
+        questionCounter.innerText = `問題 ${currentQuestionIndex + 1} / ${questions.length}`;
+        questionText.innerText = `${currentQuestionIndex + 1}. ${q.text}`;
+
+        if (q.type === 'multiple') {
+            multiSelectHint.classList.remove('hidden');
+            if(currentMode === 'immediate') confirmBtn.classList.remove('hidden');
+        } else {
+            multiSelectHint.classList.add('hidden');
+        }
+
+        q.options.forEach((opt, index) => {
+            const li = document.createElement('li');
+            li.className = 'option-item';
+            li.innerText = opt;
+            li.onclick = () => selectOption(li, index, q.type);
+            optionsList.appendChild(li);
+        });
+
+        if (currentMode === 'deferred') {
+            confirmBtn.classList.add('hidden');
+            nextBtn.classList.remove('hidden');
+            nextBtn.disabled = true;
+        }
+    }
+
+    function selectOption(element, index, type) {
+        if (hasAnsweredCurrent && currentMode === 'immediate') return;
+
+        if (type === 'single') {
+            Array.from(optionsList.children).forEach(child => child.classList.remove('selected'));
+            element.classList.add('selected');
+            
+            if (currentMode === 'immediate') {
+                checkAnswerImmediate([index]);
+            } else {
+                userAnswers[currentQuestionIndex] = [index];
+                nextBtn.disabled = false;
+            }
+        } else if (type === 'multiple') {
+            element.classList.toggle('selected');
+            const selectedItems = Array.from(optionsList.children).filter(c => c.classList.contains('selected'));
+            
+            if (currentMode === 'deferred') {
+                userAnswers[currentQuestionIndex] = selectedItems.map(item => Array.from(optionsList.children).indexOf(item));
+                nextBtn.disabled = userAnswers[currentQuestionIndex].length === 0;
+            }
+        }
+    }
+
+    function checkMultiAnswer() {
+        const selectedIndexes = Array.from(optionsList.children)
+            .map((child, index) => child.classList.contains('selected') ? index : -1)
+            .filter(index => index !== -1);
+            
+        const q = questions[currentQuestionIndex];
+        if (selectedIndexes.length !== q.requiredCount) {
+            alert(`請選擇 ${q.requiredCount} 個答案！`);
+            return;
+        }
+        checkAnswerImmediate(selectedIndexes);
+    }
+
+    function checkAnswerImmediate(selectedIndexes) {
+        hasAnsweredCurrent = true;
+        const q = questions[currentQuestionIndex];
+        userAnswers[currentQuestionIndex] = selectedIndexes;
+        confirmBtn.classList.add('hidden');
+
+        const isCorrect = selectedIndexes.length === q.correctAnswers.length && 
+                          selectedIndexes.every(val => q.correctAnswers.includes(val));
+        if (isCorrect) score++;
+
+        Array.from(optionsList.children).forEach((child, index) => {
+            if (q.correctAnswers.includes(index)) {
+                child.classList.add('correct');
+            } else if (selectedIndexes.includes(index)) {
+                child.classList.add('wrong');
+            }
+        });
+
+        feedbackArea.innerText = isCorrect ? "答對了！" : "答錯了！";
+        feedbackArea.style.backgroundColor = isCorrect ? "var(--correct-color)" : "var(--wrong-color)";
+        feedbackArea.style.color = isCorrect ? "#155724" : "#721c24";
+        feedbackArea.classList.remove('hidden');
+
+        // 顯示解析
+        if (q.explanation) {
+            explanationArea.innerText = q.explanation;
+            explanationArea.classList.remove('hidden');
+        }
+        
+        nextBtn.classList.remove('hidden');
+        nextBtn.disabled = false;
+    }
+
+    function nextQuestion() {
+        if (currentMode === 'deferred') {
+            const q = questions[currentQuestionIndex];
+            const currentAns = userAnswers[currentQuestionIndex] || [];
+            const isCorrect = currentAns.length === q.correctAnswers.length && 
+                              currentAns.every(val => q.correctAnswers.includes(val));
+            if (isCorrect) score++;
+        }
+
+        currentQuestionIndex++;
+        if (currentQuestionIndex < questions.length) {
+            loadQuestion();
+        } else {
+            showResults();
+        }
+    }
+
+    function showResults() {
+        quizArea.classList.add('hidden');
+        resultsArea.classList.remove('hidden');
+        document.getElementById('final-score').innerText = `您的總分： ${score} / ${questions.length}`;
+        
+        const reviewList = document.getElementById('review-list');
+        reviewList.innerHTML = '';
+
+        questions.forEach((q, qIndex) => {
+            const userAns = userAnswers[qIndex] || [];
+            const isCorrect = userAns.length === q.correctAnswers.length && 
+                              userAns.every(val => q.correctAnswers.includes(val));
+            
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'summary-item';
+            
+            let html = `<h4>第 ${qIndex + 1} 題：\n${q.text}</h4>`;
+            html += `<p style="color: ${isCorrect ? 'green' : 'red'}; font-weight: bold;">
+                     ${isCorrect ? '【正確】' : '【錯誤】'}</p>`;
+            
+            html += `<ul>`;
+            q.options.forEach((opt, optIndex) => {
+                let style = "";
+                if (q.correctAnswers.includes(optIndex)) {
+                    style = "color: green; font-weight: bold;"; 
+                } else if (userAns.includes(optIndex)) {
+                    style = "color: red; text-decoration: line-through;"; 
+                }
+                html += `<li style="${style}">${opt}</li>`;
+            });
+            html += `</ul>`;
+
+            // 在測驗結果頁面也顯示解析
+            if (q.explanation) {
+                html += `<div class="explanation-box">${q.explanation}</div>`;
+            }
+            
+            itemDiv.innerHTML = html;
+            reviewList.appendChild(itemDiv);
+        });
+    }
+</script>
+
+</body>
+</html>

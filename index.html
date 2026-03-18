@@ -716,6 +716,323 @@
             ],
             correctAnswers: [0],
             explanation: "解析：`nslookup` 是一個網路管理命令列工具，可以用來向網域名稱系統 (DNS) 查詢以取得網域名稱 (如 www.companypro.net) 與 IP 位址的對應關係。"
+        },
+        {
+            id: 51,
+            text: "一家本地公司需要在兩棟新大樓中部署兩個網路。這些網路使用的位址必須在私人網路範圍內。 請問該公司應該使用哪兩個位址範圍？（請選擇 2 個答案）",
+            type: "multiple",
+            requiredCount: 2,
+            options: [
+                "172.16.0.0 至 172.31.255.255",
+                "192.168.0.0 至 192.168.255.255",
+                "11.0.0.0 至 11.255.255.255",
+                "192.16.0.0 至 192.16.255.255"
+            ],
+            correctAnswers: [0, 1],
+            explanation: "解析：IANA 保留的三段私有 IP 範圍分別是：10.0.0.0/8、172.16.0.0/12 (至 172.31.255.255) 以及 192.168.0.0/16 (至 192.168.255.255)。11.x.x.x 與 192.16.x.x 皆為公共 IP。"
+        },
+        {
+            id: 52,
+            text: "下列有關主機上設定之預設閘道 IPv4 位址的敘述，哪兩個是正確的？（請選擇 2 個答案）",
+            type: "multiple",
+            requiredCount: 2,
+            options: [
+                "預設閘道是與主機連接到同一個區域網路之路由器介面的 IPv4 位址。",
+                "區域網路上的每個主機都設定相同的預設閘道 IPv4 位址。",
+                "預設閘道是與主機連接到同一個區域網路之路由器的 Loopback0 介面 IPv4 位址。",
+                "主機會透過路由器公告 (RA) 訊息獲知預設閘道 IPv4 位址。"
+            ],
+            correctAnswers: [0, 1],
+            explanation: "解析：預設閘道是主機通往其他網路的出口，必須與主機在同一個子網路 (LAN) 內。同一區域網路內的所有主機，通常都共用同一個路由器介面作為預設閘道。RA 訊息是 IPv6 獨有的機制。"
+        },
+        {
+            id: 53,
+            text: "請問當您一開始建立支援票證時，應該包含以下哪兩項資訊？（請選擇 2 個答案）",
+            type: "multiple",
+            requiredCount: 2,
+            options: [
+                "故障的詳細描述",
+                "故障發生時的條件描述",
+                "為解決故障所採取的動作",
+                "由上而下的故障查找程序描述"
+            ],
+            correctAnswers: [0, 1],
+            explanation: "解析：建立障礙申告票證的初期，最重要的資訊是「發生了什麼事 (詳細描述)」以及「什麼情況下發生的 (條件描述)」，以便後續人員重現並排除問題。"
+        },
+        {
+            id: 54,
+            text: "某位技術人員使用由下而上的疑難排解方法來判斷網路連線問題的原因。請問該技術人員會先檢查哪兩個潛在問題？（請選擇 2 個答案）",
+            type: "multiple",
+            requiredCount: 2,
+            options: [
+                "纜線不正確或損壞",
+                "網路介面卡故障",
+                "IP 位址設定錯誤",
+                "DNS 伺服器位址錯誤"
+            ],
+            correctAnswers: [0, 1],
+            explanation: "解析：「由下而上 (Bottom-up)」排解法是從 OSI 模型的實體層 (Layer 1) 開始檢查，接著是資料連結層 (Layer 2)。因此會優先檢查實體的纜線是否損壞，以及網路卡 (NIC) 的硬體狀態。"
+        },
+        {
+            id: 55,
+            text: "您需要判斷是否可以透過網路存取遠端主機。 請問您可以使用哪兩個命令？（請選擇 2 個答案）",
+            type: "multiple",
+            requiredCount: 2,
+            options: [
+                "Ping",
+                "Traceroute 或 tracert",
+                "Netstat",
+                "Ipconfig"
+            ],
+            correctAnswers: [0, 1],
+            explanation: "解析：Ping 用於測試與目標主機的端對端連線能力；Traceroute (tracert) 不僅能測試連線，還能顯示到達目標主機所經過的路徑。Netstat 是查看本機連線狀態，Ipconfig 是查看本機網卡設定。"
+        },
+        {
+            id: 56,
+            text: "某間小型辦公室的電腦無法存取 companypro.net。您需要判斷是否可以存取路由器 (預設閘道 192.168.0.1)。請問您應該使用哪個命令？\n____（A）____ ____（B）____\n（A）1. netstat 2. ping 3. ftp 4. nslookup\n（B）1. companypro.net 2. 192.168.0.1 3. localhost",
+            type: "single",
+            options: [
+                "A-4, B-1 (nslookup companypro.net)",
+                "A-2, B-2 (ping 192.168.0.1)",
+                "A-1, B-3 (netstat localhost)",
+                "A-2, B-1 (ping companypro.net)"
+            ],
+            correctAnswers: [1],
+            explanation: "解析：為了確認本機是否能與預設閘道（路由器）正常通訊，最直接的命令是向路由器的 IP 位址發送 ICMP 封包，即執行 `ping 192.168.0.1`。"
+        },
+        {
+            id: 57,
+            text: "
+
+[Image of network topology]
+\n請將纜線類型選取對應的適當連接描述：\nA. 將交換器連接到路由器\nB. 經由地下管道將路由器連接到路由器\nC. 將路由器直接連接到路由器\nD. 將交換器連接到伺服器網卡\n(1.同軸電纜  2.交叉 UTP 纜線  3.光纖纜線  4.直通 UTP 纜線)",
+            type: "single",
+            options: [
+                "A-4, B-3, C-2, D-4",
+                "A-2, B-3, C-4, D-1",
+                "A-4, B-1, C-2, D-3",
+                "A-2, B-4, C-2, D-4"
+            ],
+            correctAnswers: [0],
+            explanation: "解析：不同設備（交換器到路由器/伺服器）用直通線(4)；相同設備（路由器到路由器）用交叉線(2)；地下長距離或跨大樓通常使用光纖纜線(3)。"
+        },
+        {
+            id: 58,
+            text: "在 Cisco PoE 交換器上，哪種類型的連接埠將同時為 IP 電話提供資料連線能力與電源？",
+            type: "single",
+            options: [
+                "標識為編號 2 的連接埠",
+                "標識為編號 3 和 4 的連接埠",
+                "標識為編號 6 的連接埠",
+                "標識為編號 7 的連接埠"
+            ],
+            correctAnswers: [1],
+            explanation: "解析：PoE (Power over Ethernet) 連接埠通常在交換器面板上會有特殊的黃色邊框標示或群組劃分。根據題意情境，被標識為 3 和 4 的連接埠是具備供電能力的 PoE 埠。"
+        },
+        {
+            id: 59,
+            text: "在網路中，PC-A 傳送了一個框架到 PC-C。如果第 2 層交換器沒有 PC-C 的 MAC 位址對應項目，交換器會執行哪項動作？",
+            type: "single",
+            options: [
+                "交換器會將框架濫發到接收連接埠以外的所有使用中連接埠。",
+                "交換器會丟棄該框架並將錯誤訊息傳回給 PC-A。",
+                "交換器會向其他交換器查詢 PC-C 的 MAC 位址。",
+                "交換器會傳送 ARP 要求以取得 PC-C 的 MAC 位址。"
+            ],
+            correctAnswers: [0],
+            explanation: "解析：當交換器收到未知單點播送 (Unknown Unicast) 框架時（也就是 MAC 位址表中找不到目的地），它會執行「氾濫 (Flooding)」，將框架複製並從除來源埠之外的所有運作中連接埠送出。"
+        },
+        {
+            id: 60,
+            text: "請問您可以從顯示有 IPv6 位址並在中途出現 Request timed out (要求逾時) 的 tracert 輸出中得出哪兩個結論？（請選擇 2 個答案）",
+            type: "multiple",
+            requiredCount: 2,
+            options: [
+                "與伺服器相關聯的 IPv6 位址是 2600:1408:c400:38d::b33。",
+                "追蹤在第四個躍點後失敗 (或中斷)。",
+                "追蹤已成功到達目的地伺服器。",
+                "傳送追蹤的裝置具有 IPv6 位址 2600:1408:c400...。"
+            ],
+            correctAnswers: [0, 1],
+            explanation: "解析：Tracert 的第一行會顯示目標解析出的 IP (如選項1)。若後續跳出連續的星號 (*) 及 Request timed out，代表在該躍點之後追蹤失敗、被防火牆阻擋或封包被丟棄 (如選項2)。"
+        },
+        {
+            id: 61,
+            text: "某位使用者回報網站無法使用。發出 tracert 命令後，發現前兩個躍點正常，但在躍點 3 之後全部顯示要求逾時。請問您可以看出什麼？",
+            type: "single",
+            options: [
+                "可以透過網路存取目標伺服器。",
+                "對網頁伺服器發出的要求受到延遲但最終成功。",
+                "躍點 3 的路由器未將封包轉送到目標 IP 位址 (或封包在此被丟棄/封鎖)。",
+                "伺服器位址遭到本機防火牆封鎖。"
+            ],
+            correctAnswers: [2],
+            explanation: "解析：Tracert 卡在某個躍點，代表封包成功抵達了該路由器，但該路由器沒有回傳 ICMP Time Exceeded 訊息，或是不願意將封包繼續往下一個節點轉送（可能因為路由遺失或防火牆 ACL 阻擋）。"
+        },
+        {
+            id: 62,
+            text: "哪個命令會顯示交換器上連接埠與所學習到的 MAC 位址對應表？",
+            type: "single",
+            options: [
+                "show ip interface",
+                "show mac-address-table",
+                "show cdp neighbor",
+                "show inventory"
+            ],
+            correctAnswers: [1],
+            explanation: "解析：`show mac-address-table` (或較新設備的 `show mac address-table`) 用來查看交換器建立的第 2 層轉送表，裡面包含 VLAN、MAC 位址、類型 (動態或靜態) 以及對應的連接埠。"
+        },
+        {
+            id: 63,
+            text: "您啟動一部全新未設定的 Cisco 交換器並連接主控台。以下關於交換器預設狀態的判斷，哪項是正確的組合？\nA.所有實體介面預設為系統管理關閉\nB.所有介面預設被指派了 IP 位址\nC.所有介面預設都可以在第 2 層進行通訊",
+            type: "single",
+            options: [
+                "A(X) 錯誤, B(X) 錯誤, C(O) 正確",
+                "A(O) 正確, B(X) 錯誤, C(X) 錯誤",
+                "A(X) 錯誤, B(O) 正確, C(O) 正確",
+                "A(O) 正確, B(O) 正確, C(O) 正確"
+            ],
+            correctAnswers: [0],
+            explanation: "解析：Cisco 交換器出廠時，所有實體連接埠預設都是開啟 (no shutdown) 且處於 VLAN 1 的，因此能直接在第 2 層通訊 (C正確、A錯誤)。此外，交換器連接埠預設為 Switchport (第2層)，沒有 IP 位址 (B錯誤)。"
+        },
+        {
+            id: 64,
+            text: "系統管理員正在設定網路上主機 PC-A。網路無 DHCP 伺服器，預設閘道路由器介面為 172.100.0.254。請為 PC-A 選擇一組合法的靜態 IP 與閘道設定：",
+            type: "single",
+            options: [
+                "IP: 172.100.0.16, 遮罩: 255.255.0.0, 閘道: 172.100.0.254",
+                "IP: 172.0.0.16, 遮罩: 255.0.0.0, 閘道: 10.10.100.254",
+                "IP: 172.16.0.1, 遮罩: 255.255.255.0, 閘道: 172.100.0.1",
+                "IP: 172.100.0.254, 遮罩: 255.255.0.0, 閘道: 172.100.0.254"
+            ],
+            correctAnswers: [0],
+            explanation: "解析：PC 的 IP 位址必須與預設閘道 (172.100.0.254) 處於同一個子網路內，因此 172.100.0.x 是合理的配發範圍，並且需將閘道指向路由器的 IP。"
+        },
+        {
+            id: 65,
+            text: "評估路由器模組圖示。請問系統管理員在路由器中安裝的是哪種類型的介面 (常見於連接光纖或高速銅線的熱插拔模組)？",
+            type: "single",
+            options: ["SFP", "序列 (Serial)", "USB", "PoE"],
+            correctAnswers: [0],
+            explanation: "解析：SFP (Small Form-factor Pluggable) 是一種小型的熱插拔收發器模組，廣泛安裝在網路設備的擴充插槽上，用於連接不同的光纖或 Gigabit 乙太網路介面。"
+        },
+        {
+            id: 66,
+            text: "網路中劃分了 VLAN 100 (網段 172.100.0.0) 和 VLAN 110 (網段 172.110.0.0)。請問應該如何指派預設閘道，好讓它們可以存取網際網路？",
+            type: "single",
+            options: [
+                "VLAN 100 中的主機應該被指派 172.100.0.1 而 VLAN 110 中的主機應該被指派 172.110.0.1 做為預設閘道。",
+                "這兩個 VLAN 中的主機都應該被指派 172.0.0.1 做為預設閘道。",
+                "這兩個 VLAN 中的主機都應該被指派 10.10.100.78 做為預設閘道。",
+                "這兩個 VLAN 中的主機都應該被指派 10.10.100.1 做為預設閘道。"
+            ],
+            correctAnswers: [0],
+            explanation: "解析：每個 VLAN 都是一個獨立的廣播網域和子網路。主機的預設閘道必須設定為「路由器在該 VLAN 中所屬的介面 IP」，因此兩個不同 VLAN 必須擁有各自網段的專屬預設閘道 IP。"
+        },
+        {
+            id: 67,
+            text: "某位初級技術人員不小心重新啟動了連接不同網段的路由器 (Router1)。下列有關路由器暫時離線時網路上通訊受到影響的敘述，哪兩個是正確的？（請選擇 2 個答案）",
+            type: "multiple",
+            requiredCount: 2,
+            options: [
+                "接在同一台交換器 (同一個 LAN) 上的 PC-A 和 PC-B 仍然可以相互通訊。",
+                "所有電腦都無法存取位於另一個網段的檔案伺服器 (File-Srv)。",
+                "檔案伺服器仍然可以存取網際網路。",
+                "PC-C 和 PC-D 仍然可以與檔案伺服器通訊。"
+            ],
+            correctAnswers: [0, 1],
+            explanation: "解析：路由器負責不同網路(網段)之間的通訊。路由器離線時，跨網段通訊會中斷 (如存取外部的檔案伺服器)；但同一個區域網路內 (同一個 Switch/VLAN 下) 的設備，只需透過第 2 層 MAC 位址通訊，因此不受影響。"
+        },
+        {
+            id: 68,
+            text: "針對 `show ip interface brief` 輸出的敘述，哪項判斷組合正確？\nA.如果 Protocol 顯示 down，代表某位技術人員對該介面發出了 shutdown 命令。\nB.連接到狀態為 up/up 的裝置可以送出廣播流量。\nC.如果顯示 manual，代表技術人員使用 CLI 手動設定了 IP 位址。",
+            type: "single",
+            options: [
+                "A(X) 錯誤, B(O) 正確, C(O) 正確",
+                "A(O) 正確, B(X) 錯誤, C(X) 錯誤",
+                "A(X) 錯誤, B(X) 錯誤, C(O) 正確",
+                "A(O) 正確, B(O) 正確, C(O) 正確"
+            ],
+            correctAnswers: [0],
+            explanation: "解析：如果狀態顯示 `administratively down` 才是被人為 shutdown，單純的 `down` 通常是實體線路沒接好。Status 和 Protocol 皆 up 的介面當然可以傳遞包含廣播在內的流量。Method 為 `manual` 表示 IP 是手動設定的。"
+        },
+        {
+            id: 69,
+            text: "膝上型電腦連接到第一部交換器上的連接埠 A。第二部交換器連接到第一部交換器的連接埠 D。膝上型電腦向第一部交換器傳送了廣播框架 (Broadcast Frame)。您需要確定廣播框架會透過哪些連接埠轉送？",
+            type: "single",
+            options: [
+                "僅 B、C 和 D",
+                "僅 A、B 和 D",
+                "僅 B 和 C",
+                "僅 D"
+            ],
+            correctAnswers: [0],
+            explanation: "解析：交換器處理廣播框架 (目的 MAC 為 FF:FF:FF:FF:FF:FF) 的規則是：將框架複製並從「除接收到該框架的連接埠 (Port A) 之外」的所有運作中連接埠送出。因此 B、C、D 都會收到。"
+        },
+        {
+            id: 70,
+            text: "技術人員正在處理無法解析 URL 的電腦。要檢視從電腦到解析主機名稱之伺服器（DNS 伺服器，如 64.100.8.8）的路徑，應使用哪個命令？\n____（A）____ ____（B）____\n（A）1. netstat 2. ping 3. tracert 4. nslookup\n（B）1. 192.168.10.1 2. 64.100.8.8 3. Local.co",
+            type: "single",
+            options: [
+                "A-4, B-3 (nslookup Local.co)",
+                "A-3, B-2 (tracert 64.100.8.8)",
+                "A-2, B-1 (ping 192.168.10.1)",
+                "A-1, B-2 (netstat 64.100.8.8)"
+            ],
+            correctAnswers: [1],
+            explanation: "解析：題目要求「檢視從電腦到 DNS 伺服器的路徑」，追蹤路由路徑的指令是 `tracert`，而目標是該 DNS 伺服器的 IP `64.100.8.8`。"
+        },
+        {
+            id: 71,
+            text: "請問哪個動作可以直接從 Cisco 路由器的「特權 EXEC 模式」(提示字元為 Router#) 執行？",
+            type: "single",
+            options: [
+                "顯示正在執行的系統資訊 (如 show running-config)",
+                "啟用路由程序 (如 router ospf)",
+                "選取要設定的介面 (如 interface gi0/0)",
+                "輸入介面 IP 設定子命令 (如 ip address)"
+            ],
+            correctAnswers: [0],
+            explanation: "解析：特權 EXEC 模式 (Router#) 主要用於檢視設定、除錯與檔案管理 (`show`, `copy`, `ping`)。若要設定介面或路由協定，必須先進入全域設定模式 (Global Configuration mode, Router(config)#)。"
+        },
+        {
+            id: 72,
+            text: "在 Cisco 24 埠乙太網路交換器上檢查 show mac-address-table 的輸出。如果某個單一連接埠 (如 Gig0/1) 學習到了多個不同的動態 MAC 位址，您可以判斷什麼資訊？",
+            type: "single",
+            options: [
+                "連接埠 Gig0/1 連接到另一部交換器 (或集線器)。",
+                "此交換器上有十一個使用中連接埠。",
+                "連接埠 Gig0/1 設定為系統管理關閉。",
+                "這些 MAC 位址都是靜態設定的。"
+            ],
+            correctAnswers: [0],
+            explanation: "解析：通常一台電腦只有一個網路卡 (一個 MAC 位址)。如果一個交換器連接埠上學習到了多個 MAC 位址，代表該連接埠後方串接了另一台包含多部主機的設備（如另一台交換器、Hub 或是虛擬機環境）。"
+        },
+        {
+            id: 73,
+            text: "您計劃使用網路防火牆來保護小型辦公室的電腦。對於防火牆功能的判斷，請選出正確的組合：\nA.防火牆可以將所有 Web 流量導向到特定的 IP 位址。\nB.防火牆可以封鎖前往内部電腦上特定連接埠的流量。\nC.防火牆可以防止特定應用程式在電腦上執行。",
+            type: "single",
+            options: [
+                "A(O) 正確, B(O) 正確, C(X) 錯誤",
+                "A(X) 錯誤, B(O) 正確, C(O) 正確",
+                "A(O) 正確, B(X) 錯誤, C(O) 正確",
+                "A(X) 錯誤, B(X) 錯誤, C(X) 錯誤"
+            ],
+            correctAnswers: [0],
+            explanation: "解析：防火牆可以執行連接埠轉發 (Port Forwarding, A正確) 以及封鎖特定網路埠 (B正確)。但防止應用程式在用戶端的電腦作業系統上「執行」，屬於防毒軟體或端點防護 (EDR) 的功能，而非網路防火牆 (C錯誤)。"
+        },
+        {
+            id: 74,
+            text: "對於每一項有關頻寬和輸送量的敘述，請選出正確的組合：\nA. 低頻寬可能會增加網路延遲。\nB. 較高的網路延遲會降低網路頻寬。\nC. 您可以透過減少網路延遲來提高輸送量。",
+            type: "single",
+            options: [
+                "A(O) 正確, B(X) 錯誤, C(O) 正確",
+                "A(X) 錯誤, B(O) 正確, C(X) 錯誤",
+                "A(O) 正確, B(O) 正確, C(X) 錯誤",
+                "A(O) 正確, B(O) 正確, C(O) 正確"
+            ],
+            correctAnswers: [0],
+            explanation: "解析：頻寬 (Bandwidth) 是實體的傳輸容量上限，不會因為延遲變高而「降低」(水管的粗細不會改變，B錯誤)。但延遲過高會影響 TCP 傳輸效率，因此減少延遲確實能提高實際的「輸送量 (Throughput)」(C正確)。低頻寬造成壅塞時也會增加排隊延遲 (A正確)。"
         }
     ];
   
